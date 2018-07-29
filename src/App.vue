@@ -2,72 +2,67 @@
   <v-app dark> <!-- TODO: сделать переключение цветов -->
     <v-navigation-drawer
       persistent
-      :mini-variant="miniVariant"
+      :mini-variant="mini"
       :clipped="clipped"
       v-model="drawer"
       enable-resize-watcher
       fixed
       app
     >
-      <v-list dense>
-        <v-subheader class="mt-3 grey--text text--darken-1">SUBSCRIPTIONS</v-subheader>
-        <v-list>
-          <template v-for="(item, index) in items">
-          <v-subheader
-                  v-if="item.header"
-                  :key="item.header"
-          >
-            {{ item.header }}
-          </v-subheader>
-          <v-divider
-            v-else-if="item.divider"
-            :inset="item.inset"
-            :key="index"
-          ></v-divider>
-          <v-list-tile
-            v-else
-            :key="item.title"
-            avatar
-            @click=""
-          >
-            <v-list-tile-avatar>
-              <img :src="item.avatar">
-            </v-list-tile-avatar>
+      <!-- Фото пользователя -->
+      <v-list class="pa-1">
+        <v-list-tile v-if="mini" @click.stop="mini = !mini">
+          <v-list-tile-action>
+            <v-icon>chevron_right</v-icon>
+          </v-list-tile-action>
+        </v-list-tile>
 
-            <v-list-tile-content>
-              <v-list-tile-title v-html="item.title"/>
-              <v-list-tile-sub-title v-html="item.subtitle"/>
-            </v-list-tile-content>
-          </v-list-tile>
-        </template>
-          <!--<v-list-tile v-for="item in items2" :key="item.text" avatar @click="">
-            <v-list-tile-avatar>
-              <img :src="`https://randomuser.me/api/portraits/men/${item.picture}.jpg`" alt="">
-            </v-list-tile-avatar>
-            <v-list-tile-title v-text="item.text"></v-list-tile-title>
-          </v-list-tile>-->
-        </v-list>
-        <!---->
-        <v-list-tile class="mt-3" @click="">
+        <v-list-tile avatar tag="div">
+          <v-list-tile-avatar>
+            <img src="https://randomuser.me/api/portraits/men/85.jpg">
+          </v-list-tile-avatar>
+
+          <v-list-tile-content>
+            <v-list-tile-title>John Leider</v-list-tile-title>
+          </v-list-tile-content>
+
           <v-list-tile-action>
-            <v-icon color="grey darken-1">add_circle_outline</v-icon>
+            <v-btn icon @click.stop="mini = !mini">
+              <v-icon>chevron_left</v-icon>
+            </v-btn>
           </v-list-tile-action>
-          <v-list-tile-title class="grey--text text--darken-1">Browse Channels</v-list-tile-title>
         </v-list-tile>
-        <!---->
-        <v-list-tile @click="">
-          <v-list-tile-action>
-            <v-icon color="grey darken-1">settings</v-icon>
-          </v-list-tile-action>
-          <v-list-tile-title class="grey--text text--darken-1">Manage Subscriptions</v-list-tile-title>
-        </v-list-tile>
-        <!---->
       </v-list>
+      <!-- Помещаем компонент :is -->
+      <component :is="leftPanel"/>
+      <!-- Контакты -->
+      <!-- Нижняя навигация -->
+      <v-tabs centered color="cyan">
+        <v-tab-item v-for="v in footerBottomNav" :id="'tab-' + v.id" :key="v.id">
+          <v-card flat>
+            <div class="headline text-xs-center pa-5">
+              Active: {{ v.content }}
+            </div>
+          </v-card>
+        </v-tab-item>
+        <!-- Кнопки табов -->
+        <v-tabs-slider color="yellow"/>
+        <v-tab
+          v-for="bottom in footerBottomNav"
+          :color="bottom.color"
+          :value="bottom.value"
+          :key="bottom.id"
+          :href="'#tab-' + bottom.id"
+        >
+          <v-icon>{{bottom.icon}}</v-icon>
+        </v-tab>
+      </v-tabs>
+      <!-- -->
     </v-navigation-drawer>
     <v-toolbar app :clipped-left="clipped">
       <v-toolbar-side-icon @click.stop="drawer = !drawer"></v-toolbar-side-icon>
-      <v-btn icon @click.stop="miniVariant = !miniVariant">
-        <v-icon v-html="miniVariant ? 'chevron_right' : 'chevron_left'"></v-icon>
+      <v-btn icon @click.stop="mini = !mini">
+        <v-icon v-html="mini ? 'chevron_right' : 'chevron_left'"></v-icon>
       </v-btn>
       <v-btn icon @click.stop="clipped = !clipped">
         <v-icon>web</v-icon>
@@ -96,29 +91,6 @@
       </v-list>
     </v-navigation-drawer>
     <v-footer :fixed="fixed" app>
-      <!-- Нижняя навигация -->
-      <!--
-      <v-card height="200px" flat>
-        <div class="headline text-xs-center pa-5">
-          Active: {{ bottomNav }}
-        </div>
-        <v-bottom-nav :active.sync="bottomNav" :value="true" absolute color="transparent">
-          <v-btn color="teal" flat value="recent">
-            <span>Recent</span>
-            <v-icon>history</v-icon>
-          </v-btn>
-          <v-btn color="teal" flat value="favorites">
-            <span>Favorites</span>
-            <v-icon>favorite</v-icon>
-          </v-btn>
-          <v-btn color="teal" flat value="nearby">
-            <span>Nearby</span>
-            <v-icon>place</v-icon>
-          </v-btn>
-        </v-bottom-nav>
-      </v-card>
-      -->
-      <!-- -->
       <span>&copy; 2017</span>
     </v-footer>
     <!-- Пуш сообщение в браузерном окне -->
@@ -142,48 +114,89 @@
 </template>
 
 <script>
-import HelloWorld from './components/HelloWorld'
-
 export default {
   name: 'App',
-  components: {
-    HelloWorld
-  },
   data () {
     return {
+      leftPanel: '',
       clipped: false,
       drawer: true,
       fixed: false,
+      mini: false,
+      right: true,
+      rightDrawer: false,
+      title: 'Vuetify.js',
+      footerBottomNav: [
+        {value: 'recent',     icon: 'history',  color: 'grey', content: '1'},
+        {value: 'favorites',  icon: 'favorite', color: 'grey', content: '2'},
+        {value: 'nearby',     icon: 'place',    color: 'grey', content: '3'},
+        {value: 'settings',   icon: 'settings', color: 'grey', content: '4'}
+      ],
+      activeFooterBottomNav: 'recent',
       items: [
         { header: 'Today' },
         {
           avatar: 'https://cdn.vuetifyjs.com/images/lists/1.jpg',
           title: 'Brunch this weekend?',
-          subtitle: "<span class='text--primary'>Ali Connors</span> &mdash; I'll be in your neighborhood doing errands this weekend. Do you want to hang out?"
+          subtitle: "I'll be in your neighborhood doing errands this weekend. Do you want to hang out?"
         },
         { divider: true, inset: true },
         {
           avatar: 'https://cdn.vuetifyjs.com/images/lists/2.jpg',
-          title: 'Summer BBQ <span class="grey--text text--lighten-1">4</span>',
-          subtitle: "<span class='text--primary'>to Alex, Scott, Jennifer</span> &mdash; Wish I could come, but I'm out of town this weekend."
+          title: 'Summer BBQ',
+          subtitle: "Wish I could come, but I'm out of town this weekend."
         },
         { divider: true, inset: true },
         {
           avatar: 'https://cdn.vuetifyjs.com/images/lists/3.jpg',
           title: 'Oui oui',
-          subtitle: "<span class='text--primary'>Sandra Adams</span> &mdash; Do you have Paris recommendations? Have you ever been?"
+          subtitle: "Do you have Paris recommendations? Have you ever been?"
+        },
+        {
+          avatar: 'https://cdn.vuetifyjs.com/images/lists/1.jpg',
+          title: 'Brunch this weekend?',
+          subtitle: "I'll be in your neighborhood doing errands this weekend. Do you want to hang out?"
+        },
+        { divider: true, inset: true },
+        {
+          avatar: 'https://cdn.vuetifyjs.com/images/lists/2.jpg',
+          title: 'Summer BBQ',
+          subtitle: "Wish I could come, but I'm out of town this weekend."
+        },
+        { divider: true, inset: true },
+        {
+          avatar: 'https://cdn.vuetifyjs.com/images/lists/3.jpg',
+          title: 'Oui oui',
+          subtitle: "Do you have Paris recommendations? Have you ever been?"
+        },
+        {
+          avatar: 'https://cdn.vuetifyjs.com/images/lists/1.jpg',
+          title: 'Brunch this weekend?',
+          subtitle: "I'll be in your neighborhood doing errands this weekend. Do you want to hang out?"
+        },
+        { divider: true, inset: true },
+        {
+          avatar: 'https://cdn.vuetifyjs.com/images/lists/2.jpg',
+          title: 'Summer BBQ',
+          subtitle: "Wish I could come, but I'm out of town this weekend."
+        },
+        { divider: true, inset: true },
+        {
+          avatar: 'https://cdn.vuetifyjs.com/images/lists/3.jpg',
+          title: 'Oui oui',
+          subtitle: "Do you have Paris recommendations? Have you ever been?"
         }
       ],
       links: [
         {text: 'Dashboard', disabled: false},
         {text: 'Link 1', disabled: false},
         {text: 'Link 2', disabled: true}
-      ],
-      miniVariant: false,
-      right: true,
-      rightDrawer: false,
-      title: 'Vuetify.js'
+      ]
     }
-  }
+  },
+  //components: components,
 }
 </script>
+<style>
+
+</style>
